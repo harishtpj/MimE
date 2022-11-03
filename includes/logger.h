@@ -34,12 +34,14 @@ void loginfo(char *msg, ...) {
 }
 
 void logdbg(char *msg, ...) {
-    va_list args;
-    va_start(args, msg);
-    fprintf(stdout, "\033[0;36m");
-    vfprintf(stdout, msg, args);
-    fprintf(stdout, "\033[0m");
-    va_end(args);
+    if (isdbg) {
+        va_list args;
+        va_start(args, msg);
+        fprintf(stdout, "\033[0;36m");
+        vfprintf(stdout, msg, args);
+        fprintf(stdout, "\033[0m");
+        va_end(args);
+    }
 }
 
 #endif

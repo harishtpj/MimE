@@ -7,9 +7,10 @@
 #include <logger.h>
 
 int main(int argc, char *argv[]) {
-    int servfd, clntfd, nb;
+    int servfd, clntfd, nb, clnt_sts;
     char c_addr[INET6_ADDRSTRLEN], buf[MAXSIZE];
 
+    isdbg = true;
 
     servfd = create_server();
     check_error(listen(servfd, BACKLOG), "listen");
@@ -20,47 +21,47 @@ int main(int argc, char *argv[]) {
     logsucc("Server Started running at 0.0.0.0:%s\n", PORT);
     logsucc("mimeSMTP: waiting for connections...\n");
 
-    clntfd = accept_client(servfd, c_addr);
-    logsucc("mimeSMTP: got connection from %s\n", c_addr);
 
-    loginfo("----SMTP Server Communication Data----\n");
+    while (true) {
+        clntfd = accept_client(servfd, c_addr);
+        logsucc("mimeSMTP: got connection from %s\n", c_addr);
 
-    clrbuf(buf);
-    strcpy(buf, "220 OK, Welcome to MimE SMTP Server\r\n");
-    logdbg("mimeSMTP: %s", buf);
-    check_error(send(clntfd, buf, strlen(buf), 0), "send");
+        logdbg("----SMTP Server Communication Data----\n");
 
-    do {
-        clrbuf(buf);
-        nb = recv(clntfd, buf, MAXSIZE-1, 0);
-        if (nb < 0) {
-            perror("recv");
-            break;
-        } else {
-            buf[nb] = '\0';
-            if (is_substr(buf, "EHLO")) {
-                logdbg("%s: %s", c_addr, buf);
-                clrbuf(buf);
-                strcpy(buf, "250 OK MimE SMTP Server\r\n");
-                logdbg("mimeSMTP: %s", buf);
-                check_error(send(clntfd, buf, strlen(buf), 0), "send");
-            } else if (is_substr(buf, "QUIT")) {
+        get_response(buf, C_WELCOME);
+        logdbg("mimeSMTP: %s", buf);
+        check_error(send(clntfd, buf, strlen(buf), 0), "send");
+
+        do {
+            clrbuf(buf);
+            nb = recv(clntfd, buf, MAXSIZE-1, 0);
+            if (nb < 0) {
+                perror("recv");
                 break;
             } else {
+                buf[nb] = '\0';
                 logdbg("%s: %s", c_addr, buf);
-                clrbuf(buf);
-                strcpy(buf, "502 Command not implemented\r\n");
+                if (is_substr(buf, "HELO")) {
+                    get_response(buf, C_OK);
+                    check_error(send(clntfd, buf, strlen(buf), 0), "send");
+                } /*else if (is_substr(buf, "MAIL FROM")) {
+                    
+                }*/ else if (is_substr(buf, "QUIT")) {
+                    break;
+                } else {
+                    get_response(buf, C_NOTIMPL);
+                    check_error(send(clntfd, buf, strlen(buf), 0), "send");
+                }
                 logdbg("mimeSMTP: %s", buf);
-                check_error(send(clntfd, buf, strlen(buf), 0), "send");
             }
-        }
-    } while(strcmp(buf, "QUIT") != 0);
+        } while(strcmp(buf, "QUIT") != 0);
 
-    logdbg("%s: %s", c_addr, buf);
-    clrbuf(buf);
-    strcpy(buf, "221 Bye\r\n");
-    logdbg("mimeSMTP: %s", buf);
-    check_error(send(clntfd, buf, strlen(buf), 0), "send");
-    loginfo("----End of SMTP Server Communication Data----\n");
-    logsucc("SMTP Server Closed Sucessfully\n");
+        logdbg("%s: %s", c_addr, buf);
+        get_response(buf, C_CLOSE);
+        logdbg("mimeSMTP: %s", buf);
+        check_error(send(clntfd, buf, strlen(buf), 0), "send");
+
+        logdbg("----End of SMTP Server Communication Data----\n");
+        loginfo("Client %s got disconnected\n", c_addr);
+    }
 }

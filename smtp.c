@@ -14,7 +14,7 @@ int main(int argc, char *argv[]) {
     mail mail_data;
     int ulen = get_usrcnt();
     userinfo *users = ld_usrdata();
-    pp_usrdata(users, ulen);
+
     isdbg = true;
 
     servfd = create_server();
@@ -75,6 +75,33 @@ int main(int argc, char *argv[]) {
                             get_response(buf, C_OK);
                         }
                     }
+                
+                } else if (is_substr(buf, "DATA")) {
+                    if (clsts != CLNT_DATA) {
+                        clsts = CLNT_DATA;
+                        get_response(buf, C_SDATA);
+                        check_error(send(clntfd, buf, strlen(buf), 0), "send");
+                        logdbg("mimeSMTP: %s", buf);
+                    }
+                    clrbuf(buf);
+                    nb = recv(clntfd, buf, MAXSIZE-1, 0);
+                    if (nb < 0) {
+                        perror("recv");
+                        break;
+                    } else {
+                        buf[nb] = '\0';
+                        logdbg("%s: %s", c_addr, buf);
+                        if (is_substr(buf, "\r\n.\r\n")) {
+                            strncpy(mail_data.msg, buf, strlen(buf)-5);
+                            logdbg("mimeSMTP: Data Over. Got the Following Data\n");
+                            logdbg("%s\n", mail_data.msg);
+                            clsts = CLNT_DATA_END;
+                            strcpy(buf, "250 Message Accepted for delivery\r\n");
+                        }
+                    }
+                } else if (is_substr(buf, "RSET")) {
+                    memset(&mail_data, 0, sizeof(mail));
+                    get_response(buf, C_OK);
 
                 } else if (is_substr(buf, "QUIT")) {
                     break;

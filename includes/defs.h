@@ -23,7 +23,7 @@
 #define BACKLOG 10
 #define AUTHOR "M.V.Harish Kumar"
 #define MAXSIZE 1024
-#define MAX_DATA_SIZE 65536
+#define MAX_DATA_SIZE 250000 //250 MB
 #define MAX_USR_LEN 64
 #define MAX_DOM_LEN 255
 #define MAX_EMAIL_LEN (MAX_USR_LEN + 1 + MAX_DOM_LEN)
@@ -44,7 +44,7 @@ typedef enum {
     C_NLOCUSR = 551
 } code_resp;
 
-typedef enum { CLNT_HELO, CLNT_DATA } clnt_sts;
+typedef enum { CLNT_HELO, CLNT_DATA, CLNT_DATA_END } clnt_sts;
 
 typedef struct {
     char faddr[MAX_EMAIL_LEN];

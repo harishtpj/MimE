@@ -13,8 +13,8 @@ msg['Subject'] = 'Simple test message'
 server = smtplib.SMTP('127.0.0.1', 4192)
 server.set_debuglevel(True)  # show communication with the server
 try:
-    server.sendmail('author@example.com',
-                    ['raam@[lh]'],
+    server.sendmail('harishtpj@gmail.com',
+                    ['raam@127.0.0.1'],
                     msg.as_string())
 finally:
     server.quit()

@@ -7,8 +7,11 @@
 #include <logger.h>
 
 int main(int argc, char *argv[]) {
-    int servfd, clntfd, nb, clnt_sts;
+    int servfd, clntfd, nb;
+    clnt_sts clsts;
     char c_addr[INET6_ADDRSTRLEN], buf[MAXSIZE];
+
+    char *faddr;
 
     isdbg = true;
 
@@ -41,17 +44,26 @@ int main(int argc, char *argv[]) {
             } else {
                 buf[nb] = '\0';
                 logdbg("%s: %s", c_addr, buf);
-                if (is_substr(buf, "HELO")) {
+                if (is_substr(buf, "EHLO")) {
+                    clsts = CLNT_HELO;
                     get_response(buf, C_OK);
-                    check_error(send(clntfd, buf, strlen(buf), 0), "send");
-                } /*else if (is_substr(buf, "MAIL FROM")) {
-                    
-                }*/ else if (is_substr(buf, "QUIT")) {
+
+                } else if (is_substr(buf, "MAIL FROM")) {
+                    if (clsts != CLNT_HELO) {
+                        get_response(buf, C_BADSEQ);
+                    } else {
+                        get_fromaddr(buf, faddr);
+                        logdbg("From address: %s\n", faddr);
+                        get_response(buf, C_OK);
+                    }
+
+                } else if (is_substr(buf, "QUIT")) {
                     break;
+
                 } else {
                     get_response(buf, C_NOTIMPL);
-                    check_error(send(clntfd, buf, strlen(buf), 0), "send");
                 }
+                check_error(send(clntfd, buf, strlen(buf), 0), "send");
                 logdbg("mimeSMTP: %s", buf);
             }
         } while(strcmp(buf, "QUIT") != 0);

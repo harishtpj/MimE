@@ -34,4 +34,16 @@ void handle_signal() {
     check_error(sigaction(SIGCHLD, &sa, NULL), "sigaction");
 }
 
+char *get_fromaddr(char *buf, char *faddr) {
+    int alen;
+    char *start, *end;
+
+    start = strchr(buf, '<');
+    end = strchr(buf, '>');
+    start++;
+    alen = end - start;
+
+    strncpy(faddr, start, alen);
+}
+
 #endif

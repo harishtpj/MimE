@@ -27,7 +27,7 @@
 #define clrbuf(str) (memset(str, 0, MAXSIZE))
 #define is_substr(mainstr, str) (strcasestr(mainstr, str) != NULL)
 
-enum {
+typedef enum {
     C_WELCOME = 220,
     C_CLOSE = 221,
     C_OK = 250,
@@ -37,7 +37,9 @@ enum {
     C_BADSEQ = 503,
     C_NOUSR = 550,
     C_NLOCUSR = 551
-};
+} code_resp;
+
+typedef enum { CLNT_HELO, CLNT_DATA } clnt_sts;
 
 bool isdbg = false;
 

@@ -5,14 +5,16 @@
 #include <client.h>
 #include <helpers.h>
 #include <logger.h>
+#include <userdb.h>
 
 int main(int argc, char *argv[]) {
     int servfd, clntfd, nb;
-    clnt_sts clsts;
     char c_addr[INET6_ADDRSTRLEN], buf[MAXSIZE];
-
-    char *faddr;
-
+    clnt_sts clsts;
+    mail mail_data;
+    int ulen = get_usrcnt();
+    userinfo *users = ld_usrdata();
+    pp_usrdata(users, ulen);
     isdbg = true;
 
     servfd = create_server();
@@ -52,9 +54,26 @@ int main(int argc, char *argv[]) {
                     if (clsts != CLNT_HELO) {
                         get_response(buf, C_BADSEQ);
                     } else {
-                        get_fromaddr(buf, faddr);
-                        logdbg("From address: %s\n", faddr);
+                        get_emladdr(buf, mail_data.faddr);
+                        logdbg("From address: %s\n", mail_data.faddr);
                         get_response(buf, C_OK);
+                    }
+                
+                } else if (is_substr(buf, "RCPT TO")) {
+                    if (clsts != CLNT_HELO) {
+                        get_response(buf, C_BADSEQ);
+                    } else {
+                        char taddr[MAX_EMAIL_LEN];
+                        get_emladdr(buf, taddr);
+                        get_domain(taddr, mail_data.tdomain);
+                        get_user(taddr, mail_data.tusr);
+
+                        if (!has_usr(users, ulen, mail_data.tusr)) {
+                            get_response(buf, C_NLOCUSR);
+                        } else {
+                            logdbg("To: %s Domain: %s\n", mail_data.tusr, mail_data.tdomain);
+                            get_response(buf, C_OK);
+                        }
                     }
 
                 } else if (is_substr(buf, "QUIT")) {

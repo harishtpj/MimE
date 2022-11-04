@@ -4,6 +4,7 @@
 #define HELPERS_H
 
 #include <defs.h>
+#include <logger.h>
 
 void *get_addr(struct sockaddr *sa) {
     if (sa->sa_family == AF_INET) {
@@ -34,7 +35,7 @@ void handle_signal() {
     check_error(sigaction(SIGCHLD, &sa, NULL), "sigaction");
 }
 
-char *get_fromaddr(char *buf, char *faddr) {
+void get_emladdr(char *buf, char *faddr) {
     int alen;
     char *start, *end;
 
@@ -44,6 +45,20 @@ char *get_fromaddr(char *buf, char *faddr) {
     alen = end - start;
 
     strncpy(faddr, start, alen);
+}
+
+void get_domain(char *email, char *dom) {
+    char *domain;
+    domain = strchr(email, '@');
+    domain += 1;
+    strcpy(dom, domain);
+}
+
+void get_user(char *email, char *user) {
+    char *domain;
+    domain = strchr(email, '@');
+    domain += 1;
+    strncpy(user, email, strlen(email)-strlen(domain)-1);
 }
 
 #endif

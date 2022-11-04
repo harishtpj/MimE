@@ -23,6 +23,11 @@
 #define BACKLOG 10
 #define AUTHOR "M.V.Harish Kumar"
 #define MAXSIZE 1024
+#define MAX_DATA_SIZE 65536
+#define MAX_USR_LEN 64
+#define MAX_DOM_LEN 255
+#define MAX_EMAIL_LEN (MAX_USR_LEN + 1 + MAX_DOM_LEN)
+#define USERLST "mimeusrs"
 
 #define clrbuf(str) (memset(str, 0, MAXSIZE))
 #define is_substr(mainstr, str) (strcasestr(mainstr, str) != NULL)
@@ -40,6 +45,13 @@ typedef enum {
 } code_resp;
 
 typedef enum { CLNT_HELO, CLNT_DATA } clnt_sts;
+
+typedef struct {
+    char faddr[MAX_EMAIL_LEN];
+    char tusr[MAX_USR_LEN];
+    char tdomain[MAX_DOM_LEN];
+    char msg[MAX_DATA_SIZE];
+} mail;
 
 bool isdbg = false;
 

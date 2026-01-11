@@ -36,4 +36,5 @@ $ make run_smtp
 # 📝 License
 
 #### Copyright © 2022 [M.V.Harish Kumar](https://github.com/harishtpj). <br>
-#### This project is [MIT](https://github.com/harishtpj/MimE/blob/main/LICENSE) licensed.
+
+#### This project is [MIT](https://github.com/harishtpj/MimE/blob/master/LICENSE) licensed.
